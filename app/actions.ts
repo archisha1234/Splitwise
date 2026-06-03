@@ -377,7 +377,7 @@ export async function createExpenseAction(_prevState: FormState, formData: FormD
     `select u.id as user_id, u.display_name from group_members gm join users u on u.id = gm.user_id where gm.group_id = $1 and gm.status = 'active'`,
     [groupId]
   );
-  const activeMembers = new Set(memberResult.rows.map((row) => row.user_id));
+  const activeMembers = new Set(memberResult.rows.map((row: { user_id: string }) => row.user_id));
   if (!activeMembers.has(user.id)) {
     return { formError: "You are not a member of this group." };
   }
@@ -489,7 +489,7 @@ export async function createSettlementAction(_prevState: FormState, formData: Fo
     `select user_id from group_members where group_id = $1 and status = 'active'`,
     [groupId]
   );
-  const activeSet = new Set(activeMembers.rows.map((row) => row.user_id));
+  const activeSet = new Set(activeMembers.rows.map((row: { user_id: string }) => row.user_id));
   if (!activeSet.has(user.id)) {
     return { formError: "You are not a member of this group." };
   }

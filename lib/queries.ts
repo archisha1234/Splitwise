@@ -237,5 +237,5 @@ export async function getActiveMemberIds(groupId: string) {
     `select user_id from group_members where group_id = $1 and status = 'active' order by joined_at asc`,
     [groupId]
   );
-  return result.rows.map((row) => row.user_id);
+  return result.rows.map((row: { user_id: string }) => row.user_id);
 }
