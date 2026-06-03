@@ -9,6 +9,7 @@ import {
   getGroupExpenses,
   getGroupMembers
 } from "@/lib/queries";
+import type { BalanceResult } from "@/lib/balance";
 import { deleteGroupAction, regenerateInviteCodeAction, leaveGroupAction, removeMemberAction } from "@/app/actions";
 import { LocalTime } from "@/components/local-time";
 import { PageTitle, SectionTitle, ShellCard } from "@/components/ui";
@@ -25,7 +26,15 @@ export default async function GroupDetailPage({
   const group = await getGroupById(groupId);
   if (!group) redirect("/dashboard");
 
-  const members = await getGroupMembers(groupId);
+  type GroupMemberRow = {
+    id: string;
+    user_id: string;
+    display_name: string;
+    role: string;
+    status: string;
+    joined_at: string;
+  };
+  const members: GroupMemberRow[] = await getGroupMembers(groupId);
   const activeMembers = members.filter((member) => member.status === "active");
   const currentMembership = activeMembers.find((member) => member.user_id === user.id);
   if (!currentMembership) redirect("/dashboard");
@@ -36,6 +45,31 @@ export default async function GroupDetailPage({
     getGroupActivity(groupId),
     getGroupSpending(groupId)
   ]);
+  const typedBalances: BalanceResult = balances;
+  type GroupExpenseRow = {
+    id: string;
+    description: string;
+    total_amount_paise: string | number;
+    split_type: string;
+    expense_date: string;
+    created_at: string;
+    payer_name: string;
+    creator_name: string;
+    message_count: string | number;
+    unread_count: string | number;
+    latest_message_at: string | null;
+  };
+  type ActivityItem = {
+    id: string;
+    type: string;
+    entity_type: string;
+    entity_id: string | null;
+    payload: unknown;
+    created_at: string;
+    actor_name: string;
+  };
+  const typedActivity: ActivityItem[] = activity;
+  const typedExpenses: GroupExpenseRow[] = expenses;
 
   const formerMembers = members.filter((member) => member.status === "left");
   const creator = group.creator_id === user.id;
@@ -61,7 +95,7 @@ export default async function GroupDetailPage({
         <ShellCard className="space-y-5">
           <SectionTitle title="Net balances" />
           <div className="space-y-3">
-            {balances.pairwiseWithViewer.map((item) => (
+            {typedBalances.pairwiseWithViewer.map((item) => (
               <div key={item.id} className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
                 <span className="font-medium text-slate-900">{item.displayName}</span>
                 <span className="text-sm text-slate-600">{item.label}</span>
@@ -115,7 +149,7 @@ export default async function GroupDetailPage({
         <ShellCard className="space-y-5">
           <SectionTitle title="Members" />
           <div className="space-y-3">
-            {balances.memberBalances.map((member) => (
+            {typedBalances.memberBalances.map((member) => (
               <div key={member.id} className="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-3">
                 <div>
                   <p className="font-medium text-slate-900">{member.displayName}</p>
@@ -146,10 +180,10 @@ export default async function GroupDetailPage({
         <ShellCard className="space-y-5">
           <SectionTitle title="Activity feed" />
           <div className="space-y-3">
-            {activity.length === 0 ? (
+            {typedActivity.length === 0 ? (
               <p className="text-sm text-slate-500">No activity yet.</p>
             ) : (
-              activity.map((item) => (
+              typedActivity.map((item) => (
                 <div key={item.id} className="rounded-2xl border border-slate-200 bg-white p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div>
@@ -169,11 +203,11 @@ export default async function GroupDetailPage({
 
       <ShellCard className="space-y-5">
         <SectionTitle title="Who owes whom" />
-        {balances.pairwiseDebts.length === 0 ? (
+        {typedBalances.pairwiseDebts.length === 0 ? (
           <p className="text-sm text-slate-500">No pairwise debts yet.</p>
         ) : (
           <div className="space-y-3">
-            {balances.pairwiseDebts.map((item) => {
+            {typedBalances.pairwiseDebts.map((item) => {
               const from = members.find((member) => member.user_id === item.fromUserId)?.display_name ?? "Unknown";
               const to = members.find((member) => member.user_id === item.toUserId)?.display_name ?? "Unknown";
               return (
@@ -192,10 +226,10 @@ export default async function GroupDetailPage({
       <ShellCard className="space-y-5">
         <SectionTitle title="Expenses" />
         <div className="space-y-3">
-          {expenses.length === 0 ? (
+          {typedExpenses.length === 0 ? (
             <p className="text-sm text-slate-500">No expenses yet. Add the first one.</p>
           ) : (
-            expenses.map((expense) => (
+            typedExpenses.map((expense) => (
               <Link key={expense.id} href={`/groups/${groupId}/expenses/${expense.id}`}>
                 <div className="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-4 hover:bg-slate-50">
                   <div className="space-y-1">
@@ -208,7 +242,7 @@ export default async function GroupDetailPage({
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium text-slate-900">{formatINR(expense.total_amount_paise)}</p>
+                    <p className="font-medium text-slate-900">{formatINR(Number(expense.total_amount_paise))}</p>
                     <p className="text-xs text-slate-500">
                       <LocalTime iso={expense.expense_date} format="date" />
                     </p>

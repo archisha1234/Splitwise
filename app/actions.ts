@@ -415,7 +415,7 @@ export async function createExpenseAction(_prevState: FormState, formData: FormD
     participantIds,
     inputValues
   });
-  if ("error" in allocation) {
+  if ("error" in allocation && allocation.error) {
     return { fieldErrors: { splitType: allocation.error } };
   }
 

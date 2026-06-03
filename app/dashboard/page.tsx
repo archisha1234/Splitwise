@@ -10,6 +10,12 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
 
   const groups = await getDashboardData(user.id);
+  type DashboardGroup = {
+    id: string;
+    name: string;
+    category: string | null;
+    viewer_balance_paise: string | number;
+  };
 
   return (
     <div className="space-y-8">
@@ -37,7 +43,7 @@ export default async function DashboardPage() {
         </ShellCard>
       ) : (
         <div className="grid gap-4">
-          {groups.map((group) => {
+          {groups.map((group: DashboardGroup) => {
             const balance = BigInt(group.viewer_balance_paise);
             return (
               <Link key={group.id} href={`/groups/${group.id}`}>

@@ -8,13 +8,25 @@ export type SplitAllocation = {
   inputValue: number | null;
 };
 
+type SplitAllocationSuccess = {
+  allocations: SplitAllocation[];
+  error?: never;
+};
+
+type SplitAllocationError = {
+  error: string;
+  allocations: SplitAllocation[];
+};
+
+export type SplitAllocationResult = SplitAllocationSuccess | SplitAllocationError;
+
 export function buildSplitAllocations(args: {
   splitType: SplitType;
   totalAmountPaise: number;
   payerId: string;
   participantIds: string[];
   inputValues: Record<string, string>;
-}) {
+}): SplitAllocationResult {
   const uniqueParticipants = Array.from(new Set([...args.participantIds, args.payerId]));
   if (uniqueParticipants.length === 0) {
     return { error: "Select at least one participant.", allocations: [] as SplitAllocation[] };

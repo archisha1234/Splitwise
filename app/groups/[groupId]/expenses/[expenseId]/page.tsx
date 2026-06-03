@@ -23,6 +23,19 @@ export default async function ExpenseDetailPage({
   if (membership.rows.length === 0) redirect("/dashboard");
 
   const { expense, shares, messages } = await getExpenseDetails(expenseId);
+  type ExpenseShareRow = {
+    user_id: string;
+    display_name: string;
+    allocated_amount_paise: string | number;
+    input_value: string | null;
+  };
+  type ExpenseMessageRow = {
+    id: string;
+    body: string;
+    created_at: string;
+    sender_id: string;
+    sender_name: string;
+  };
   if (!expense || expense.group_id !== groupId) redirect(`/groups/${groupId}`);
 
   const latestMessageAt = messages[messages.length - 1]?.created_at ?? expense.created_at;
@@ -53,7 +66,7 @@ export default async function ExpenseDetailPage({
             </p>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-semibold text-slate-950">{formatINR(expense.total_amount_paise)}</p>
+            <p className="text-2xl font-semibold text-slate-950">{formatINR(Number(expense.total_amount_paise))}</p>
             <p className="text-sm text-slate-500">{expense.split_type} split</p>
           </div>
         </div>
@@ -75,13 +88,13 @@ export default async function ExpenseDetailPage({
         <ShellCard className="space-y-4">
           <SectionTitle title="Split" />
           <div className="space-y-3">
-            {shares.map((share) => (
+            {shares.map((share: ExpenseShareRow) => (
               <div key={share.user_id} className="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-3">
                 <div>
                   <p className="font-medium text-slate-900">{share.display_name}</p>
                   {share.input_value ? <p className="text-xs text-slate-500">Input value: {share.input_value}</p> : null}
                 </div>
-                <p className="text-sm font-medium text-slate-700">{formatINR(share.allocated_amount_paise)}</p>
+                <p className="text-sm font-medium text-slate-700">{formatINR(Number(share.allocated_amount_paise))}</p>
               </div>
             ))}
           </div>
@@ -96,7 +109,7 @@ export default async function ExpenseDetailPage({
           <p className="text-sm text-slate-500">No messages yet.</p>
         ) : (
           <div className="space-y-3">
-            {messages.map((message) => (
+            {messages.map((message: ExpenseMessageRow) => (
               <div key={message.id} className="rounded-2xl border border-slate-200 bg-white p-4">
                 <div className="flex items-center justify-between gap-4">
                   <p className="text-sm font-medium text-slate-900">{message.sender_name}</p>

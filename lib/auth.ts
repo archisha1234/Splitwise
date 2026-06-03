@@ -37,7 +37,8 @@ export async function createSession(userId: string) {
     userId,
     expiresAt
   ]);
-  cookies().set(SESSION_COOKIE, token, {
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -47,15 +48,17 @@ export async function createSession(userId: string) {
 }
 
 export async function clearSession() {
-  const cookie = cookies().get(SESSION_COOKIE);
+  const cookieStore = await cookies();
+  const cookie = cookieStore.get(SESSION_COOKIE);
   if (cookie) {
     await query("delete from sessions where token_hash = $1", [hashToken(cookie.value)]);
   }
-  cookies().set(SESSION_COOKIE, "", { expires: new Date(0), path: "/" });
+  cookieStore.set(SESSION_COOKIE, "", { expires: new Date(0), path: "/" });
 }
 
 export async function getCurrentUser() {
-  const token = cookies().get(SESSION_COOKIE)?.value;
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) return null;
   const tokenHash = hashToken(token);
   const result = await query<SessionUser & { expires_at: string }>(

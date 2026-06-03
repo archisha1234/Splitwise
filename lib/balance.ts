@@ -2,6 +2,30 @@ export type MemberRow = { id: string; display_name: string };
 export type ExpenseShareRow = { expense_id: string; user_id: string; allocated_amount_paise: string | number };
 export type ExpenseRow = { id: string; payer_id: string; total_amount_paise: string | number };
 export type SettlementRow = { payer_id: string; payee_id: string; amount_paise: string | number };
+export type BalanceMember = {
+  id: string;
+  displayName: string;
+  balancePaise: bigint;
+  balanceType: "owed_to_you" | "you_owe" | "settled";
+};
+export type BalanceViewer = {
+  id: string;
+  displayName: string;
+  balancePaise: bigint;
+  label: string;
+};
+export type BalanceDebt = {
+  key: string;
+  fromUserId: string;
+  toUserId: string;
+  amountPaise: bigint;
+};
+export type BalanceResult = {
+  viewerBalancePaise: bigint;
+  memberBalances: BalanceMember[];
+  pairwiseWithViewer: BalanceViewer[];
+  pairwiseDebts: BalanceDebt[];
+};
 
 type BalanceMap = Map<string, bigint>;
 type PairKey = string;
@@ -20,7 +44,7 @@ export function computeBalances(args: {
   expenses: ExpenseRow[];
   settlements: SettlementRow[];
   viewerId: string;
-}) {
+}): BalanceResult {
   const net: BalanceMap = new Map(args.members.map((member) => [member.id, 0n]));
   const pairwise: Map<PairKey, Map<string, bigint>> = new Map();
 
@@ -57,11 +81,12 @@ export function computeBalances(args: {
   const memberById = new Map(args.members.map((member) => [member.id, member.display_name]));
   const memberBalances = args.members.map((member) => {
     const balance = net.get(member.id) ?? 0n;
+    const balanceType: BalanceMember["balanceType"] = balance > 0n ? "owed_to_you" : balance < 0n ? "you_owe" : "settled";
     return {
       id: member.id,
       displayName: memberById.get(member.id) ?? "Unknown",
       balancePaise: balance,
-      balanceType: balance > 0n ? "owed_to_you" : balance < 0n ? "you_owe" : "settled"
+      balanceType
     };
   });
 

@@ -1,7 +1,9 @@
-import type { PoolClient } from "pg";
+type DbClient = {
+  query: (text: string, values?: unknown[]) => Promise<unknown>;
+};
 
 export async function insertActivity(
-  client: PoolClient,
+  client: DbClient,
   groupId: string,
   actorId: string,
   type: string,
