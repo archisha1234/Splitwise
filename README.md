@@ -2,7 +2,7 @@
 
 ## Live App
 
-- Deployed URL: `TODO`
+- Deployed URL: `https://splitwise-qocq-rgtpnx737-archisha1234s-projects.vercel.app/login`
 
 ## Setup
 
