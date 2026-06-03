@@ -16,11 +16,11 @@ import { PageTitle, SectionTitle, ShellCard } from "@/components/ui";
 export default async function GroupDetailPage({
   params
 }: {
-  params: { groupId: string };
+  params: Promise<{ groupId: string }>;
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  const { groupId } = params;
+  const { groupId } = await params;
 
   const group = await getGroupById(groupId);
   if (!group) redirect("/dashboard");

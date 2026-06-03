@@ -7,11 +7,11 @@ import { toDateInputValue } from "@/lib/money";
 export default async function NewExpensePage({
   params
 }: {
-  params: { groupId: string };
+  params: Promise<{ groupId: string }>;
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  const { groupId } = params;
+  const { groupId } = await params;
 
   const membership = await query<{ id: string }>(
     `select id from group_members where group_id = $1 and user_id = $2 and status = 'active' limit 1`,

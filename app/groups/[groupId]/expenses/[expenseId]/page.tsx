@@ -10,11 +10,11 @@ import { ShellCard, SectionTitle } from "@/components/ui";
 export default async function ExpenseDetailPage({
   params
 }: {
-  params: { groupId: string; expenseId: string };
+  params: Promise<{ groupId: string; expenseId: string }>;
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  const { groupId, expenseId } = params;
+  const { groupId, expenseId } = await params;
 
   const membership = await query<{ id: string }>(
     `select id from group_members where group_id = $1 and user_id = $2 and status = 'active' limit 1`,
