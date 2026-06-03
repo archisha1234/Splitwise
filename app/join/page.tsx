@@ -5,13 +5,14 @@ import { JoinGroupForm } from "@/components/group-form";
 export default async function JoinGroupPage({
   searchParams
 }: {
-  searchParams: { code?: string };
+  searchParams: Promise<{ code?: string }>;
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+  const resolvedSearchParams = await searchParams;
   return (
     <div className="flex justify-center">
-      <JoinGroupForm initialCode={searchParams.code ?? ""} />
+      <JoinGroupForm initialCode={resolvedSearchParams.code ?? ""} />
     </div>
   );
 }
